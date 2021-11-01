@@ -1,0 +1,13 @@
+[package]
+name = "velm_core"
+version = "0.1.0"
+authors = ["Nick Bryan <nickbryan.dev@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1"
+thiserror = "1"
+tokio = { version = "1.13", features = ["full"] }
+tokio-stream = "0.1"
+unicode-segmentation = "1.6"
+nom = "6"

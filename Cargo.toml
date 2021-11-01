@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "velm_core",
+    "velm_tui",
+    "velm_webui",
+]
