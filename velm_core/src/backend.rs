@@ -23,8 +23,8 @@ pub enum Key {
     Unknown,
 }
 
-/// EventStream is a an asynchronous tokio stream of input Events.
-pub type EventStream = Pin<Box<dyn tokio_stream::Stream<Item = Event> + Send + Sync + 'static>>;
+/// `EventStream` is a an asynchronous tokio stream of input Events.
+pub type EventStream = Pin<Box<dyn tokio_stream::Stream<Item = Event> + Send>>;
 
 /// Events are dispatched from the backend to allow the application to handle input.
 #[derive(Debug)]
