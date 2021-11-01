@@ -5,5 +5,11 @@ use velm_tui::map_crossterm_event_stream;
 
 #[tokio::main]
 async fn main() {
-    Editor::new(map_crossterm_event_stream()).run().await;
+    crossterm::terminal::enable_raw_mode().unwrap();
+
+    Editor::default()
+        .consume(map_crossterm_event_stream())
+        .await;
+
+    crossterm::terminal::disable_raw_mode().unwrap();
 }
