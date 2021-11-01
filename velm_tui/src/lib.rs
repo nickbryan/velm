@@ -1,41 +1,23 @@
-use std::pin::Pin;
-use std::task::{Context, Poll};
-use tokio::time::Duration;
-use tokio_stream::Stream;
-use velm_core::{Event, Key as VelmKey};
+use velm_core::{Event, EventStream, Key as VelmKey};
+
+/// Map the events coming from the crossterm EventStream into the events that are expected by the application.
+pub fn map_crossterm_event_stream() -> EventStream {
+    use futures::StreamExt;
+
+    Box::pin(crossterm::event::EventStream::new().map(|possible_event| {
+        use crossterm::event as ctevent;
+
+        match possible_event {
+            Ok(ctevent::Event::Key(key)) => Event::KeyPressed(Key::from(key).0),
+            Ok(ctevent::Event::Mouse(_)) => Event::MouseInputReceived,
+            Ok(ctevent::Event::Resize(x, y)) => Event::WindowResized(x, y),
+            Err(e) => Event::ReadFailed(e),
+        }
+    }))
+}
 
 /// Newtype to allow mapping crossterm::event::KeyEvent to VelmKey.
 struct Key(VelmKey);
-
-/// EventStream implementation for Crossterm.
-pub struct CrosstermEventStream {
-    tick_rate: Duration,
-}
-
-impl CrosstermEventStream {
-    /// Creates a new CrosstermEventStream.
-    pub fn new(tick_rate: Duration) -> Self {
-        Self { tick_rate }
-    }
-}
-
-impl Stream for CrosstermEventStream {
-    type Item = Event;
-
-    fn poll_next(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        use crossterm::event as ctevent;
-
-        match ctevent::poll(self.tick_rate) {
-            Ok(true) => match ctevent::read() {
-                Ok(ctevent::Event::Key(key)) => Poll::Ready(Some(Event::Input(Key::from(key).0))),
-                Err(e) => Poll::Ready(Some(Event::Error(e))),
-                Ok(ctevent::Event::Mouse(_)) | Ok(ctevent::Event::Resize(_, _)) => Poll::Pending,
-            },
-            Ok(false) => Poll::Ready(Some(Event::Tick)),
-            Err(e) => Poll::Ready(Some(Event::Error(e))),
-        }
-    }
-}
 
 impl From<crossterm::event::KeyEvent> for Key {
     fn from(event: crossterm::event::KeyEvent) -> Self {

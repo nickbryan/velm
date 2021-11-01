@@ -6,13 +6,19 @@ pub struct Editor {
 }
 
 impl Editor {
+    #[must_use]
     pub fn new(event_stream: EventStream) -> Self {
         Self { event_stream }
     }
 
     pub async fn run(&mut self) {
-        while let Some(event) = self.event_stream.next().await {
-            println!("{:?}", event);
+        loop {
+            tokio::select! {
+                Some(event) = self.event_stream.next() => {
+                    println!("{:?}", event);
+                }
+                else => break,
+            }
         }
     }
 }

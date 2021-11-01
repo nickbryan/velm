@@ -1,12 +1,9 @@
-use tokio::time::Duration;
+#![warn(clippy::all, clippy::pedantic)]
+
 use velm_core::Editor;
-use velm_tui::CrosstermEventStream;
+use velm_tui::map_crossterm_event_stream;
 
 #[tokio::main]
 async fn main() {
-    Editor::new(Box::pin(CrosstermEventStream::new(Duration::from_millis(
-        250,
-    ))))
-    .run()
-    .await;
+    Editor::new(map_crossterm_event_stream()).run().await;
 }
