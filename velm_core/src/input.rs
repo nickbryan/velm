@@ -1,7 +1,7 @@
 use std::io::Error as IoError;
 use std::pin::Pin;
 
-/// Key presses accepted by the editor.
+/// `Key` presses accepted by the editor.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Key {
     Enter,
@@ -23,10 +23,7 @@ pub enum Key {
     Unknown,
 }
 
-/// `EventStream` is a an asynchronous tokio stream of input Events.
-pub type EventStream = Pin<Box<dyn tokio_stream::Stream<Item = Event> + Send>>;
-
-/// Events are dispatched from the backend to allow the application to handle input.
+/// `Event`s are dispatched from the backend to allow the application to handle input.
 #[derive(Debug)]
 pub enum Event {
     KeyPressed(Key),
@@ -34,3 +31,6 @@ pub enum Event {
     WindowResized(u16, u16),
     ReadFailed(IoError),
 }
+
+/// `EventStream` is a an asynchronous tokio stream of input Events.
+pub type EventStream = Pin<Box<dyn tokio_stream::Stream<Item = Event> + Send>>;

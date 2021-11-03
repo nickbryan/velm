@@ -1,24 +1,11 @@
-use crate::{
-    communication::{Command, Message},
-    Event, EventStream, Key,
-};
+use crate::communication::{Command, Message};
+use crate::component::{Component, Window};
+use crate::{Event, EventStream, Key};
 use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
 
-pub trait Component {
-    fn update(&mut self, msg: Message) -> Option<Command>;
-}
-
-pub struct WindowComponent;
-
-impl Component for WindowComponent {
-    fn update(&mut self, msg: Message) -> Option<Command> {
-        println!("{:?}", msg);
-
-        Some(|| Message::Quit)
-    }
-}
-
+/// `Editor` is the entry point into the application and is responsible for orchestrating
+/// communication between `Component`s.
 pub struct Editor<C>
 where
     C: Component,
@@ -29,14 +16,14 @@ where
     should_quit: bool,
 }
 
-impl Default for Editor<WindowComponent> {
+impl Default for Editor<Window> {
     fn default() -> Self {
         let (msg_tx, msg_rx) = mpsc::channel(1);
 
         Self {
             msg_rx,
             msg_tx,
-            root_component: WindowComponent {},
+            root_component: Window {},
             should_quit: false,
         }
     }
