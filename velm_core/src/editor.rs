@@ -1,40 +1,53 @@
 use crate::communication::{Command, Message};
 use crate::component::{Component, Window};
-use crate::{Event, EventStream, Key};
+use crate::render::{View, Viewport};
+use crate::{Canvas, Event, EventStream, Key};
+use anyhow::Result;
 use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
 
 /// `Editor` is the entry point into the application and is responsible for orchestrating
 /// communication between `Component`s.
-pub struct Editor<C>
+pub struct Editor<'a, VC, C>
 where
-    C: Component,
+    VC: View + Component,
+    C: Canvas,
 {
     msg_tx: mpsc::Sender<Message>,
     msg_rx: mpsc::Receiver<Message>,
-    root_component: C,
+    root_component: VC,
     should_quit: bool,
+    viewport: Viewport<'a, C>,
 }
 
-impl Default for Editor<Window> {
-    fn default() -> Self {
+impl<'a, C> Editor<'a, Window, C>
+where
+    C: Canvas,
+{
+    pub fn new(canvas: &'a mut C) -> Result<Self> {
+        use anyhow::Context;
+
         let (msg_tx, msg_rx) = mpsc::channel(1);
 
-        Self {
+        Ok(Self {
             msg_rx,
             msg_tx,
             root_component: Window {},
             should_quit: false,
-        }
+            viewport: Viewport::new(canvas).context("unable to initialise Viewport")?,
+        })
     }
 }
 
-impl<C> Editor<C>
+impl<'a, VC, C> Editor<'a, VC, C>
 where
-    C: Component,
+    VC: Component + View,
+    C: Canvas,
 {
     /// Consume the given `EventStream` to run/drive the Editor.
     pub async fn consume(&mut self, mut event_stream: EventStream) {
+        // TODO: handle unwrapping better!
+
         let (cmd_tx, mut cmd_rx) = mpsc::channel::<Command>(1);
 
         let msg_tx = self.msg_tx.clone();
@@ -77,6 +90,8 @@ where
                     if let Some(cmd) = self.root_component.update(msg) {
                         cmd_tx.send(cmd).await.unwrap_or_default();
                     }
+
+                    self.viewport.render(&self.root_component).unwrap_or_default();
                 }
                 else => break,
             }
