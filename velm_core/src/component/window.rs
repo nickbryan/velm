@@ -1,4 +1,5 @@
 use crate::communication::{Command, Message};
+use crate::component::status_bar::StatusBar;
 use crate::component::{Component, TextInput};
 use crate::mode::Mode;
 use crate::render::{Frame, View};
@@ -56,6 +57,15 @@ impl View for Window {
         if let Mode::Normal(_) | Mode::Insert(_) = self.mode {
             frame.set_cursor_position(Position::default());
         }
+
+        StatusBar {
+            area: Rect::positioned(self.size.width, 1, self.size.left(), self.size.bottom() - 1),
+            mode: self.mode.to_string(),
+            line_count: 0,
+            cursor_position: frame.cursor_position(),
+            file_name: "".to_string(),
+        }
+        .render_to(frame);
 
         self.command_prompt.render_to(frame);
     }

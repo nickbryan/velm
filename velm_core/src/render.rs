@@ -40,7 +40,8 @@ pub struct Cell {
 
 impl Cell {
     /// Create a new Cell.
-    #[must_use] pub fn new(col: usize, row: usize, symbol: &str, foreground: Color, background: Color) -> Self {
+    #[must_use]
+    pub fn new(col: usize, row: usize, symbol: &str, foreground: Color, background: Color) -> Self {
         Self {
             position: Position::new(col, row),
             symbol: symbol.into(),
@@ -50,7 +51,8 @@ impl Cell {
     }
 
     /// Returns the Position of the Cell.
-    #[must_use] pub fn position(&self) -> &Position {
+    #[must_use]
+    pub fn position(&self) -> &Position {
         &self.position
     }
 
@@ -60,17 +62,20 @@ impl Cell {
     }
 
     /// Returns the Cell's symbol.
-    #[must_use] pub fn symbol(&self) -> &String {
+    #[must_use]
+    pub fn symbol(&self) -> &String {
         &self.symbol
     }
 
     /// Returns the foreground color of this cell.
-    #[must_use] pub fn foreground(&self) -> Color {
+    #[must_use]
+    pub fn foreground(&self) -> Color {
         self.foreground
     }
 
     /// Returns the background color of this cell.
-    #[must_use] pub fn background(&self) -> Color {
+    #[must_use]
+    pub fn background(&self) -> Color {
         self.background
     }
 }
@@ -114,6 +119,11 @@ impl Frame {
             area,
             cursor_position: Position::default(),
         }
+    }
+
+    /// The current cursor position.
+    pub fn cursor_position(&self) -> Position {
+        self.cursor_position
     }
 
     /// Diff the current `Frame` with the other `Frame` to get a list of changed `Cell`s.
