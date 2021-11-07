@@ -175,6 +175,11 @@ impl Frame {
             self.cells[i].reset();
         }
     }
+
+    /// Set the cursor position for the final frame render.
+    pub fn set_cursor_position(&mut self, position: Position) {
+        self.cursor_position = position;
+    }
 }
 
 /// `View` can be implemented on any `Component` to allow it to be drawn to the `Viewport`.

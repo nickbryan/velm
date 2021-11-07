@@ -5,7 +5,10 @@ use crossterm::{
     terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::{self, Error as IoError, Write};
-use velm_core::{Canvas, Cell, Color as VelmColor, Event, EventStream, Key as VelmKey, Rect};
+use velm_core::{
+    ui::{Color as VelmColor, Rect},
+    Canvas, Cell, Event, EventStream, Key as VelmKey,
+};
 
 /// Map the events coming from the crossterm EventStream into the events that are expected by the application.
 pub fn map_crossterm_event_stream() -> EventStream {

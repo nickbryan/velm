@@ -4,10 +4,15 @@ mod communication;
 mod component;
 mod editor;
 mod input;
+mod mode;
 mod render;
-mod ui;
+mod row;
+
+pub mod ui;
 
 pub use editor::Editor;
 pub use input::{Event, EventStream, Key};
 pub use render::{Canvas, Cell};
-pub use ui::{Color, Rect};
+
+use mode::Mode;
+use row::Row;

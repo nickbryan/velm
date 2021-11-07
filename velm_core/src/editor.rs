@@ -1,7 +1,8 @@
 use crate::communication::{Command, Message};
 use crate::component::{Component, Window};
+use crate::mode::Normal;
 use crate::render::{View, Viewport};
-use crate::{Canvas, Event, EventStream, Key};
+use crate::{Canvas, Event, EventStream, Key, Mode};
 use anyhow::{Error, Result};
 use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
@@ -13,8 +14,7 @@ where
     VC: View + Component,
     C: Canvas,
 {
-    msg_tx: mpsc::Sender<Message>,
-    msg_rx: mpsc::Receiver<Message>,
+    mode: Mode,
     root_component: VC,
     should_quit: bool,
     viewport: Viewport<'a, C>,
@@ -32,14 +32,14 @@ where
     pub fn new(canvas: &'a mut C) -> Result<Self> {
         use anyhow::Context;
 
-        let (msg_tx, msg_rx) = mpsc::channel(1);
+        let mode = Mode::default();
+        let viewport = Viewport::new(canvas).context("unable to initialise Viewport")?;
 
         Ok(Self {
-            msg_rx,
-            msg_tx,
-            root_component: Window {},
+            mode: mode.clone(),
+            root_component: Window::new(viewport.area(), mode),
             should_quit: false,
-            viewport: Viewport::new(canvas).context("unable to initialise Viewport")?,
+            viewport,
         })
     }
 }
@@ -57,51 +57,79 @@ where
     pub async fn consume(&mut self, mut event_stream: EventStream) -> Result<()> {
         use anyhow::Context;
 
-        // TODO: figure out the buffer size of these channels.
-        let (cmd_tx, mut cmd_rx) = mpsc::channel::<Command>(1);
+        // TODO: figure out the buffer size of these channels. Is this even async?
         let (err_tx, mut err_rx) = mpsc::channel::<Error>(1);
+        let (cmd_tx, mut cmd_rx) = mpsc::channel::<Command>(1);
+        let (msg_tx, mut msg_rx) = mpsc::channel(1);
 
-        let msg_tx = self.msg_tx.clone();
-        tokio::spawn(async move {
-            while let Some(event) = event_stream.next().await {
-                match event {
-                    Event::KeyPressed(Key::Esc) => {
-                        msg_tx
-                            .send(Message::Quit)
-                            .await
-                            .expect("unable to send msg on closed msg_tx channel");
-                    }
-                    Event::KeyPressed(Key::Char(ch)) => {
-                        msg_tx
-                            .send(Message::InsertChar(ch))
-                            .await
-                            .expect("unable to send msg on closed msg_tx channel");
-                    }
-                    _ => (),
-                }
-            }
-        });
-
-        let msg_tx = self.msg_tx.clone();
-        tokio::spawn(async move {
-            while let Some(cmd) = cmd_rx.recv().await {
-                let msg_tx = msg_tx.clone();
-
-                // Each command is spawned in its own async block as they may take time to complete.
-                tokio::spawn(async move {
-                    msg_tx
-                        .send(cmd())
-                        .await
-                        .expect("unable to send cmd result on closed msg_tx channel");
-                });
-            }
-        });
+        // Render the initial view so that we don't have to wait for an input event to
+        // see something on the screen.
+        self.viewport
+            .render(&self.root_component)
+            .context("unable to render the initial view")?;
 
         while !self.should_quit {
             tokio::select! {
-                Some(msg) = self.msg_rx.recv() => {
+                Some(e) = err_rx.recv() => {
+                    return Err(e);
+                }
+                Some(event) = event_stream.next() => {
+                    match event {
+                        Event::KeyPressed(key) => {
+                            if let Some(msg) = match self.mode {
+                                Mode::Execute(ref mode) => mode.handle(key),
+                                Mode::Insert(ref mode) => mode.handle(key),
+                                Mode::Normal(ref mut mode) => mode.handle(key),
+                            } {
+                                msg_tx
+                                    .send(msg)
+                                    .await
+                                    .expect("unable to send msg on closed msg_tx channel");
+                            }
+                        }
+                        Event::ReadFailed(e) => {
+                            err_tx
+                                .send(Error::new(e))
+                                .await
+                                .expect("unable to send on closed err_tx channel");
+                        }
+                        _ => (),
+                    }
+                }
+                Some(cmd) = cmd_rx.recv() => {
+                    let msg_tx = msg_tx.clone();
+                    // Each command is spawned in its own async block as they may take time to complete.
+                    tokio::spawn(async move {
+                        msg_tx
+                            .send(cmd())
+                            .await
+                            .expect("unable to send cmd result on closed msg_tx channel");
+                    });
+                }
+                Some(msg) = msg_rx.recv() => {
                     if let Message::Quit = msg {
                         self.should_quit = true;
+                    }
+
+                    if let Message::EnterMode(mode) = msg.clone() {
+                        self.mode = mode;
+                    }
+
+                    if let Message::ParseCommandLineInput(input) = msg {
+                        if let Mode::Execute(ref mode) = self.mode {
+                            let msg = mode.parse(input.as_str());
+
+                            self.mode = Mode::Normal(Normal::default());
+
+                            if let Some(msg) = msg {
+                                 msg_tx
+                                .send(msg)
+                                .await
+                                .expect("unable to send msg on closed msg_tx channel");
+                            }
+                        }
+
+                        continue;
                     }
 
                     if let Some(cmd) = self.root_component.update(msg) {
@@ -111,9 +139,6 @@ where
                     if let Err(e) = self.viewport.render(&self.root_component).context("rendering error occurred") {
                         err_tx.send(e).await.expect("unable to send on closed err_tx channel");
                     }
-                }
-                Some(e) = err_rx.recv() => {
-                    return Err(e);
                 }
                 else => break,
             }
