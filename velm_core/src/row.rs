@@ -21,7 +21,7 @@ impl Row {
             .take(end - start)
         {
             if grapheme == "\t" {
-                result.push_str(" ");
+                result.push(' ');
             } else {
                 result.push_str(grapheme);
             }
@@ -111,7 +111,7 @@ mod tests {
     fn to_string_can_take_a_snippet_of_the_row() {
         assert_eq!("Hello", &Row::from("Hello World!").to_string(0, 5));
         assert_eq!("World", &Row::from("Hello World!").to_string(6, 11));
-        assert_eq!("🦀🦀🦀", &Row::from("🦀🦀🦀🦀🦀").to_string(1, 4));
+        assert_eq!("\u{1f980}\u{1f980}\u{1f980}", &Row::from("\u{1f980}\u{1f980}\u{1f980}\u{1f980}\u{1f980}").to_string(1, 4));
     }
 
     #[test]
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn contents_returns_the_full_row() {
-        assert_eq!("Hello 🦀!", &Row::from("Hello 🦀!").contents());
+        assert_eq!("Hello \u{1f980}!", &Row::from("Hello \u{1f980}!").contents());
     }
 
     #[test]
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn grapheme_can_be_deleted_at_position() {
-        let mut row = Row::from("Crab🦀");
+        let mut row = Row::from("Crab\u{1f980}");
         row.delete(4);
         assert_eq!("Crab", &row.contents());
     }
@@ -164,14 +164,14 @@ mod tests {
     fn grapheme_can_be_inserted_at_position() {
         let mut row = Row::from("12");
         row.insert(1, '🦀');
-        assert_eq!("1🦀2", &row.contents());
+        assert_eq!("1\u{1f980}2", &row.contents());
     }
 
     #[test]
     fn row_can_be_split_at_position() {
-        let mut row = Row::from("🦀 Rust is awesome!");
+        let mut row = Row::from("\u{1f980} Rust is awesome!");
         let other = row.split(10);
-        assert_eq!("🦀 Rust is ", &row.contents());
+        assert_eq!("\u{1f980} Rust is ", &row.contents());
         assert_eq!("awesome!", &other.contents());
     }
 
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn len_counts_grapheme_clusters_individually() {
-        assert_eq!(4, Row::from("🦀g̈각ก").len());
+        assert_eq!(4, Row::from("\u{1f980}g\u{308}\u{ac01}\u{e01}").len());
     }
 
     #[test]

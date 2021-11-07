@@ -1,6 +1,6 @@
 #![warn(clippy::all, clippy::pedantic)]
 
-use anyhow::{Context, Error};
+use anyhow::Error;
 use backtrace::Backtrace;
 use crossterm::{style::Print, terminal::LeaveAlternateScreen};
 use std::panic::{self, PanicInfo};

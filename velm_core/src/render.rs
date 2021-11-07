@@ -40,7 +40,7 @@ pub struct Cell {
 
 impl Cell {
     /// Create a new Cell.
-    pub fn new(col: usize, row: usize, symbol: &str, foreground: Color, background: Color) -> Self {
+    #[must_use] pub fn new(col: usize, row: usize, symbol: &str, foreground: Color, background: Color) -> Self {
         Self {
             position: Position::new(col, row),
             symbol: symbol.into(),
@@ -50,7 +50,7 @@ impl Cell {
     }
 
     /// Returns the Position of the Cell.
-    pub fn position(&self) -> &Position {
+    #[must_use] pub fn position(&self) -> &Position {
         &self.position
     }
 
@@ -60,17 +60,17 @@ impl Cell {
     }
 
     /// Returns the Cell's symbol.
-    pub fn symbol(&self) -> &String {
+    #[must_use] pub fn symbol(&self) -> &String {
         &self.symbol
     }
 
     /// Returns the foreground color of this cell.
-    pub fn foreground(&self) -> Color {
+    #[must_use] pub fn foreground(&self) -> Color {
         self.foreground
     }
 
     /// Returns the background color of this cell.
-    pub fn background(&self) -> Color {
+    #[must_use] pub fn background(&self) -> Color {
         self.background
     }
 }
@@ -165,7 +165,7 @@ impl Frame {
             self.cells[cell_idx] = Cell::new(
                 self.cells[cell_idx].position.col,
                 self.cells[cell_idx].position.row,
-                &grapheme,
+                grapheme,
                 foreground,
                 background,
             );

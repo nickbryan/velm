@@ -60,7 +60,7 @@ mod execute {
         character::complete::{anychar, char},
         combinator::{all_consuming, map, value},
         multi::many1,
-        sequence::{pair, separated_pair},
+        sequence::{separated_pair},
         IResult,
     };
 
@@ -100,7 +100,7 @@ mod execute {
                 ("w some_file.txt", Message::SaveAs("some_file.txt".into())),
             ];
 
-            for (input, command) in tests.into_iter() {
+            for (input, command) in tests {
                 assert_eq!(command_for_input(input), Some(command));
             }
         }

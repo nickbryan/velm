@@ -2,7 +2,7 @@ use crate::communication::{Command, Message};
 use crate::component::{Component, Window};
 use crate::mode::Normal;
 use crate::render::{View, Viewport};
-use crate::{Canvas, Event, EventStream, Key, Mode};
+use crate::{Canvas, Event, EventStream, Mode};
 use anyhow::{Error, Result};
 use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
