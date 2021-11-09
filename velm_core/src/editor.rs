@@ -117,7 +117,7 @@ where
 
                     if let Message::ParseCommandLineInput(input) = msg {
                         if let Mode::Execute(ref mode) = self.mode {
-                            let msg = mode.parse(input.as_str());
+                            let msg = mode.parse(&input);
 
                             self.mode = Mode::Normal(Normal::default());
 

@@ -1,6 +1,7 @@
 use anyhow::Result;
 use crossterm::{
     cursor::{Hide, MoveTo, Show},
+    event::{DisableMouseCapture, EnableMouseCapture},
     style::{Color as CrosstermColor, Print, SetBackgroundColor, SetForegroundColor},
     terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -42,6 +43,7 @@ impl<W: Write> CrosstermCanvas<W> {
     pub fn new(mut out: W) -> Result<Self, IoError> {
         crossterm::terminal::enable_raw_mode()?;
         crossterm::execute!(out, EnterAlternateScreen)?;
+        crossterm::execute!(out, EnableMouseCapture)?;
 
         Ok(Self { out })
     }
@@ -51,6 +53,8 @@ impl<W: Write> Drop for CrosstermCanvas<W> {
     /// Ensures that we LeaveAlternateScreen and disable_raw_mode before the application ends to
     /// return the user terminal back to normal.
     fn drop(&mut self) {
+        crossterm::execute!(self.out, DisableMouseCapture)
+            .expect("unable to disable mouse capture");
         crossterm::execute!(self.out, LeaveAlternateScreen)
             .expect("unable to leave alternate screen");
         crossterm::terminal::disable_raw_mode().expect("unable to disable raw mode");

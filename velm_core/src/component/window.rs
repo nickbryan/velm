@@ -1,12 +1,13 @@
 use crate::communication::{Command, Message};
-use crate::component::status_bar::StatusBar;
-use crate::component::{Component, TextInput};
+use crate::component::{Buffer, Component, StatusBar, TextInput, Welcome};
 use crate::mode::Mode;
 use crate::render::{Frame, View};
 use crate::ui::{Position, Rect};
 
 /// `Window` is the default root component for the `Editor`.
 pub struct Window {
+    active_buffer_idx: usize,
+    buffers: Vec<Buffer>,
     command_prompt: TextInput,
     mode: Mode,
     size: Rect,
@@ -25,16 +26,33 @@ impl Window {
         }
 
         Self {
+            active_buffer_idx: 0,
+            buffers: Vec::default(),
             command_prompt,
             mode,
             size,
         }
+    }
+
+    fn buffer_space(&self) -> Rect {
+        Rect::positioned(
+            self.size.width,
+            self.size.height,
+            self.size.left(),
+            self.size.bottom() - 2,
+        )
     }
 }
 
 impl Component for Window {
     fn update(&mut self, msg: Message) -> Option<Command> {
         if let Message::EnterMode(mode) = msg.clone() {
+            if let Mode::Insert(_) = mode {
+                if self.buffers.is_empty() {
+                    self.buffers.push(Buffer::new(self.buffer_space()));
+                }
+            }
+
             if let Mode::Execute(_) = mode {
                 self.command_prompt.focus();
             } else {
@@ -54,8 +72,21 @@ impl Component for Window {
 
 impl View for Window {
     fn render_to(&self, frame: &mut Frame) {
+        if self.buffers.is_empty() {
+            Welcome {
+                size: self.buffer_space(),
+            }
+            .render_to(frame);
+        } else {
+            self.buffers[self.active_buffer_idx].render_to(frame);
+        }
+
         if let Mode::Normal(_) | Mode::Insert(_) = self.mode {
-            frame.set_cursor_position(Position::default());
+            frame.set_cursor_position(if self.buffers.is_empty() {
+                Position::default()
+            } else {
+                self.buffers[self.active_buffer_idx].cursor_position()
+            });
         }
 
         StatusBar {

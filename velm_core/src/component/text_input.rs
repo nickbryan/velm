@@ -130,7 +130,7 @@ impl View for TextInput {
         if self.value.is_empty() && !self.place_holder.is_empty() && !self.focused {
             frame.write_line(
                 self.position.row,
-                self.place_holder.as_str(),
+                &self.place_holder,
                 Color::default(),
                 Color::default(),
             );
@@ -142,7 +142,7 @@ impl View for TextInput {
 
         frame.write_line(
             self.position.row,
-            value.as_str(),
+            &value,
             Color::default(),
             Color::default(),
         );
