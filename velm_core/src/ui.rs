@@ -37,8 +37,14 @@ pub struct Position {
 
 impl Position {
     /// Create a new Position.
-    #[must_use] pub fn new(col: usize, row: usize) -> Self {
+    pub fn new(col: usize, row: usize) -> Self {
         Self { col, row }
+    }
+}
+
+impl From<(usize, usize)> for Position {
+    fn from((col, row): (usize, usize)) -> Self {
+        Self::new(col, row)
     }
 }
 
@@ -52,7 +58,7 @@ pub struct Rect {
 
 impl Rect {
     /// Create a new Rect with default Position (0, 0).
-    #[must_use] pub fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
         Self {
             width,
             height,
@@ -61,7 +67,7 @@ impl Rect {
     }
 
     /// Create a new Rect with a set Position.
-    #[must_use] pub fn positioned(width: usize, height: usize, col: usize, row: usize) -> Self {
+    pub fn positioned(width: usize, height: usize, col: usize, row: usize) -> Self {
         Self {
             width,
             height,
@@ -70,33 +76,33 @@ impl Rect {
     }
 
     /// Returns the area of the Rect.
-    #[must_use] pub fn area(&self) -> usize {
+    pub fn area(&self) -> usize {
         self.width.saturating_mul(self.height)
     }
 
     /// Returns the leftmost possible value of the Rect. **Note**: This is zero based.
-    #[must_use] pub fn left(&self) -> usize {
+    pub fn left(&self) -> usize {
         self.position.col
     }
 
     /// Returns the rightmost possible value of the Rect. **Note**: This is zero based.
-    #[must_use] pub fn right(&self) -> usize {
+    pub fn right(&self) -> usize {
         self.position.col + self.width - 1
     }
 
     /// Returns the topmost possible value of the Rect. **Note**: This is zero based.
-    #[must_use] pub fn top(&self) -> usize {
+    pub fn top(&self) -> usize {
         self.position.row
     }
 
     /// Returns the bottommost possible value of the Rect. **Note**: This is zero based.
-    #[must_use] pub fn bottom(&self) -> usize {
+    pub fn bottom(&self) -> usize {
         self.position.row + self.height - 1
     }
 
     /// Check if the given position is within the Rect, taking the Rect's Position into
     /// consideration.
-    #[must_use] pub fn contains(&self, position: &Position) -> bool {
+    pub fn contains(&self, position: &Position) -> bool {
         let Position { col, row } = *position;
 
         col >= self.left() && col <= self.right() && row >= self.top() && row <= self.bottom()

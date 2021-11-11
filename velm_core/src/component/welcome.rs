@@ -22,7 +22,7 @@ impl View for Welcome {
                 continue;
             }
 
-            frame.write_line(row, "~", Color::default(), Color::default());
+            frame.write_line(row, "~", Color::Gray, Color::default());
         }
     }
 }

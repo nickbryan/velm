@@ -132,8 +132,14 @@ where
                         continue;
                     }
 
-                    if let Some(cmd) = self.root_component.update(msg) {
-                        cmd_tx.send(cmd).await.expect("unable to send on closed cmd_tx channel");
+                    match self.root_component.update(msg) {
+                        Ok(Some(cmd)) => {
+                            cmd_tx.send(cmd).await.expect("unable to send on closed cmd_tx channel");
+                        }
+                        Err(e) => {
+                            err_tx.send(e.context("error during root_component update")).await.expect("unable to send on closed err_tx channel");
+                        }
+                        _ => (),
                     }
 
                     if let Err(e) = self.viewport.render(&self.root_component).context("rendering error occurred") {

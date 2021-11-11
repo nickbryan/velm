@@ -1,4 +1,5 @@
 use crate::communication::{Command, Message};
+use anyhow::Result;
 
 mod buffer;
 mod status_bar;
@@ -15,5 +16,5 @@ pub use window::Window;
 /// `Component` is the foundation for all interactivity within the `Editor`. You can view it as the
 /// model in elm architecture.
 pub trait Component {
-    fn update(&mut self, msg: Message) -> Option<Command>;
+    fn update(&mut self, msg: Message) -> Result<Option<Command>>;
 }

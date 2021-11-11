@@ -1,8 +1,10 @@
 use crate::communication::{Command, Message};
 use crate::component::{Buffer, Component, StatusBar, TextInput, Welcome};
+use crate::document::Document;
 use crate::mode::Mode;
 use crate::render::{Frame, View};
 use crate::ui::{Position, Rect};
+use anyhow::Result;
 
 /// `Window` is the default root component for the `Editor`.
 pub struct Window {
@@ -45,11 +47,12 @@ impl Window {
 }
 
 impl Component for Window {
-    fn update(&mut self, msg: Message) -> Option<Command> {
+    fn update(&mut self, msg: Message) -> Result<Option<Command>> {
         if let Message::EnterMode(mode) = msg.clone() {
             if let Mode::Insert(_) = mode {
                 if self.buffers.is_empty() {
-                    self.buffers.push(Buffer::new(self.buffer_space()));
+                    self.buffers
+                        .push(Buffer::new(self.buffer_space(), Document::default()));
                 }
             }
 
@@ -66,7 +69,7 @@ impl Component for Window {
             return self.command_prompt.update(msg);
         }
 
-        None
+        self.buffers[self.active_buffer_idx].update(msg)
     }
 }
 

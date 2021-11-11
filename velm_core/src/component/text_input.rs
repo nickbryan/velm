@@ -4,6 +4,7 @@ use crate::mode::{Mode, Normal};
 use crate::render::{Frame, View};
 use crate::ui::{Color, Position};
 use crate::Row;
+use anyhow::Result;
 
 pub struct TextInput {
     cursor_position: usize,
@@ -44,8 +45,8 @@ impl TextInput {
 }
 
 impl Component for TextInput {
-    fn update(&mut self, msg: Message) -> Option<Command> {
-        match msg {
+    fn update(&mut self, msg: Message) -> Result<Option<Command>> {
+        Ok(match msg {
             Message::InsertChar(ch) => {
                 self.value.insert(self.cursor_position, ch);
                 self.cursor_position = self.cursor_position.saturating_add(1);
@@ -99,9 +100,9 @@ impl Component for TextInput {
                 if self.value.len() <= 1 {
                     self.reset();
 
-                    return Some(communication::wrap(Message::EnterMode(Mode::Normal(
+                    return Ok(Some(communication::wrap(Message::EnterMode(Mode::Normal(
                         Normal::default(),
-                    ))));
+                    )))));
                 }
 
                 None
@@ -113,15 +114,15 @@ impl Component for TextInput {
                 if self.value.len() <= 1 {
                     self.reset();
 
-                    return Some(communication::wrap(Message::EnterMode(Mode::Normal(
+                    return Ok(Some(communication::wrap(Message::EnterMode(Mode::Normal(
                         Normal::default(),
-                    ))));
+                    )))));
                 }
 
                 None
             }
             _ => None,
-        }
+        })
     }
 }
 

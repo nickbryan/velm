@@ -60,7 +60,7 @@ mod execute {
         character::complete::{anychar, char},
         combinator::{all_consuming, map, value},
         multi::many1,
-        sequence::{separated_pair},
+        sequence::separated_pair,
         IResult,
     };
 

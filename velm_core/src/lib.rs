@@ -2,6 +2,7 @@
 
 mod communication;
 mod component;
+mod document;
 mod editor;
 mod input;
 mod mode;

@@ -111,7 +111,10 @@ mod tests {
     fn to_string_can_take_a_snippet_of_the_row() {
         assert_eq!("Hello", &Row::from("Hello World!").to_string(0, 5));
         assert_eq!("World", &Row::from("Hello World!").to_string(6, 11));
-        assert_eq!("\u{1f980}\u{1f980}\u{1f980}", &Row::from("\u{1f980}\u{1f980}\u{1f980}\u{1f980}\u{1f980}").to_string(1, 4));
+        assert_eq!(
+            "\u{1f980}\u{1f980}\u{1f980}",
+            &Row::from("\u{1f980}\u{1f980}\u{1f980}\u{1f980}\u{1f980}").to_string(1, 4)
+        );
     }
 
     #[test]
@@ -126,7 +129,10 @@ mod tests {
 
     #[test]
     fn contents_returns_the_full_row() {
-        assert_eq!("Hello \u{1f980}!", &Row::from("Hello \u{1f980}!").contents());
+        assert_eq!(
+            "Hello \u{1f980}!",
+            &Row::from("Hello \u{1f980}!").contents()
+        );
     }
 
     #[test]
